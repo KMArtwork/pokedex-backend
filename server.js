@@ -6,13 +6,12 @@ const cors = require('cors')
 require('dotenv').config()
 // add auth0 verify
 const Team = require('./dbmodels/pkmnteam')
-const { findByIdAndUpdate } = require('./dbmodels/pkmnteam')
-const { response } = require('express')
+
 
 const app = express()
 // middleware
 app.use(cors())
-app.use(express.json())
+app.use(express.json({limit: '5mb'}))
 //app.use(*put created auth0 verify middleware here*)
 
 const PORT = process.env.PORT || 3001;
@@ -23,10 +22,10 @@ mongoose.connect(process.env.DATABASE_URL);
 // CREATE | adds a new team to the database
 app.post ('/teams', (request, response) => {
   
-  console.log('post request received from client | save team to database');
+  console.log('post request received from client | userId: xxx | attempting to save team to database...');
 
   if (request.body.length === 0) {
-    response.status(406).send('Team must have at least 1 member')
+    response.status(406).send('Unable to save. Team must have at least 1 member')
   }
   else {
     Team
@@ -44,7 +43,7 @@ app.post ('/teams', (request, response) => {
 // READ | gets all relevant teams from database > when displayed on front end, user will choose which specific team to load/display
 app.get('/teams', (request, response) => {
 
-  console.log('get request received from client | get all teams for user')
+  console.log('get request received from client | userId: xxx | attempting to get all teams of user')
 
   Team
     // once Authentication is added, will need to filter by userID
@@ -70,7 +69,7 @@ app.get('/teams', (request, response) => {
 // READ | this endpoint is hit when the user chooses which team to load in the client 
 app.get('/team', (request, response) => {
 
-  console.log('get request received from client | load team to client')
+  console.log('get request received from client | userId: xxx | attempting to load team to client')
   console.log(request.query.id);
 
   Team
@@ -83,6 +82,21 @@ app.get('/team', (request, response) => {
       response.send(500).send(err)
     })
 
+})
+
+app.delete('/teams/:id', (request, response) => {
+  console.log('delete request received from client | userId: xxx | attempting to delete team from database')
+
+  Team
+    .findByIdAndDelete(request.params.id)
+    .then(res => {
+      console.log('successfully deleted team')
+      response.status(200).send('team sucessfully deleted')
+    })
+    .catch(err => {
+      console.log('unable to delete team from database')
+      response.send(500).send(err)
+    })
 })
 
 app.listen(PORT, () => console.log(`pokedex server listening on ${PORT}`))
