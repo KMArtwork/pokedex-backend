@@ -84,6 +84,24 @@ app.get('/team', (request, response) => {
 
 })
 
+// UPDATE | updates pre-existing team that has been loaded/modified on the client
+app.put('/teams/:id', (request, response) => {
+  console.log('put request received from client | userId: xxx | attempting to update a team in the database')
+
+  Team
+    .findByIdAndUpdate(request.body.id, request.body, {new: true})
+    .then(res => {
+      console.log(`successfully updated pokemon team, db-id: ${request.body.id}`)
+      response.status(202).send(res)
+    })
+    .catch(err => {
+      console.log('error updating team')
+      response.status(404).send(`${err} | Unable to update team`)
+    })
+})
+
+
+// DELETE | removes a team from the database using the id
 app.delete('/teams/:id', (request, response) => {
   console.log('delete request received from client | userId: xxx | attempting to delete team from database')
 
