@@ -7,6 +7,9 @@ require('dotenv').config()
 // const { auth, requiresAuth } = require('express-openid-connect')
 const Team = require('./dbmodels/pkmnteam')
 const User = require('./src/auth/models/users')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const SECRET = process.env.SECRET
 
 // const config = {
 //   authRequired: false,
@@ -34,8 +37,23 @@ mongoose.connect(process.env.DATABASE_URL);
 //   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
 // });
 
-app.get('/login', (req, res) => {
-  res.send('login endpoint hit')
+app.post('/login', (request, response) => {
+  User
+    .findOne({
+      username: request.body.username
+    })
+    .then(async (res) => {
+      const isValid = await bcrypt.compare(request.body.password, res.password);
+      console.log(`${request.body.username} login success`);
+      if (isValid) {
+        const token = jwt.sign({username: res.username}, SECRET, {expiresIn: '1hr'});
+        res.token = token;
+        console.log(res.token)
+        response.send(res);
+      } else {
+        response.status(401).send('Invalid Login')
+      }
+    })
 })
 
 app.post('/signup', (request, response) => {
