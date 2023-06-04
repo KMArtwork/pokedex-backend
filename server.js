@@ -4,19 +4,71 @@ const mongoose = require('mongoose')
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
-// add auth0 verify
+// const { auth, requiresAuth } = require('express-openid-connect')
 const Team = require('./dbmodels/pkmnteam')
+const User = require('./src/auth/models/users')
 
+// const config = {
+//   authRequired: false,
+//   auth0Logout: true,
+//   secret: process.env.CLIENT_SECRET,
+//   baseURL: process.env.AUTH0_BASE_URL,
+//   clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
+//   issuerBaseURL: process.env.REACT_APP_AUTH0_DOMAIN
+// }
 
+const PORT = process.env.PORT || 3001;
 const app = express()
+
+
 // middleware
 app.use(cors())
 app.use(express.json({limit: '5mb'}))
 //app.use(*put created auth0 verify middleware here*)
+// app.use(auth(config))
 
-const PORT = process.env.PORT || 3001;
 
 mongoose.connect(process.env.DATABASE_URL);
+
+// app.get('/', (req, res) => {
+//   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+// });
+
+app.get('/login', (req, res) => {
+  res.send('login endpoint hit')
+})
+
+app.post('/signup', (request, response) => {
+  User
+    .create({
+      username:  request.body.username,
+      password: request.body.password
+    })
+    .then(res => {
+      response.status(202).send(res)
+    })
+    .catch(err => {
+      console.log(err);
+      response.status(500).send(err)
+    })
+  
+  // console.log(req.body)
+  // res.send(req.body)
+})
+
+
+// app.get('/profile', requiresAuth(), (req, res) => {
+//   res.send(JSON.stringify(req.oidc.user));
+// });
+
+// app.post('/callback', (request, response) => {
+//   console.log(response)
+//   response.status(200).send(response)
+// })
+
+// app.get('/login', requiresAuth(), (req, res) => {
+//   res.send(req.oidc.isAuthenticated())
+// } )
 
 
 // CREATE | adds a new team to the database
