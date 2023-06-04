@@ -1,24 +1,31 @@
 'use strict'
 
-const mongoose = require('mongoose')
-const express = require('express')
-const cors = require('cors')
-require('dotenv').config()
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const SECRET = process.env.SECRET
-const base64 = require('base-64')
-const Team = require('./dbmodels/pkmnteam')
-const User = require('./src/auth/models/users')
-const basicAuth = require('./src/auth/middleware/basic.js')
+const mongoose = require('mongoose');
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const SECRET = process.env.SECRET;
+const base64 = require('base-64');
+const Team = require('./dbmodels/pkmnteam');
+const User = require('./src/auth/models/users');
+const basicAuth = require('./src/auth/middleware/basic.js');
+const bearerAuth = require('./src/auth/middleware/bearer.js')
+const cookieParser = require('cookie-parser');
 
 const PORT = process.env.PORT || 3001;
 const app = express()
 
 
 // middleware
-app.use(cors())
-app.use(express.json({limit: '5mb'}))
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+app.use(express.json({limit: '5mb'}));
+app.use(cookieParser());
+
 
 mongoose.connect(process.env.DATABASE_URL);
 
@@ -29,7 +36,11 @@ app.post('/login', basicAuth, (request, response) => {
     user: request.user,
     token: token
   }
-  response.status(200).json(user)
+  console.log('LOGIN TOKEN: ', token)
+  response
+    .cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true})
+    .status(200)
+    .json(user)
 })
 
 app.post('/signup', (request, response) => {
@@ -46,7 +57,8 @@ app.post('/signup', (request, response) => {
         user: user,
         token: token
       }
-      response.status(202).json(newUser)
+      response.cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true});
+      response.status(202).json(newUser);
     })
     .catch(err => {
       console.log(err);
@@ -60,7 +72,7 @@ app.post('/logout', (request, response) => {
 
 
 // CREATE | adds a new team to the database
-app.post ('/teams', (request, response) => {
+app.post ('/teams', bearerAuth, (request, response) => {
   
   console.log('post request received from client | userId: xxx | attempting to save team to database...');
 
