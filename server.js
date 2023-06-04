@@ -20,7 +20,7 @@ const app = express()
 
 // middleware
 app.use(cors({
-  origin: true,
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
 app.use(express.json({limit: '5mb'}));
@@ -93,24 +93,24 @@ app.post ('/teams', bearerAuth, (request, response) => {
 })
 
 // READ | gets all relevant teams from database > when displayed on front end, user will choose which specific team to load/display
-app.get('/teams', (request, response) => {
+app.get('/teams', bearerAuth, (request, response) => {
 
   console.log('get request received from client | userId: xxx | attempting to get all teams of user')
 
   Team
     // once Authentication is added, will need to filter by userID
-    .find()
+    .find({trainer: request.user.username})
     .then(res => {
-      let teamIds = [];
+      let foundTeams = [];
       res.forEach(element => {
         let team = {
           id: element._id,
           teamName: element.teamName,
         };
-        teamIds.push(team);
+        foundTeams.push(team);
       })
-      console.log(teamIds);
-      response.status(200).send(teamIds);
+      console.log('TRAINER TEAMS: ', foundTeams);
+      response.status(200).json(foundTeams);
     })
     .catch(err => {
       console.log('error querying database')

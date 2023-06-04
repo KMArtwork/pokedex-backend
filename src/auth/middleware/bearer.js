@@ -11,6 +11,7 @@ module.exports = async (req, res, next) => {
     res.status(401).send('Request is missing authorization header');
   }
   let token = req.cookies.pokeToken;
+  console.log('COOKIE TOKEN: ', token)
 
   try{
     const parsedToken = jwt.verify(token, SECRET);
