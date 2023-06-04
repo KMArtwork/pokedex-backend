@@ -4,21 +4,13 @@ const mongoose = require('mongoose')
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
-// const { auth, requiresAuth } = require('express-openid-connect')
-const Team = require('./dbmodels/pkmnteam')
-const User = require('./src/auth/models/users')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const SECRET = process.env.SECRET
-
-// const config = {
-//   authRequired: false,
-//   auth0Logout: true,
-//   secret: process.env.CLIENT_SECRET,
-//   baseURL: process.env.AUTH0_BASE_URL,
-//   clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
-//   issuerBaseURL: process.env.REACT_APP_AUTH0_DOMAIN
-// }
+const base64 = require('base-64')
+const Team = require('./dbmodels/pkmnteam')
+const User = require('./src/auth/models/users')
+const basicAuth = require('./src/auth/middleware/basic.js')
 
 const PORT = process.env.PORT || 3001;
 const app = express()
@@ -27,66 +19,44 @@ const app = express()
 // middleware
 app.use(cors())
 app.use(express.json({limit: '5mb'}))
-//app.use(*put created auth0 verify middleware here*)
-// app.use(auth(config))
-
 
 mongoose.connect(process.env.DATABASE_URL);
 
-// app.get('/', (req, res) => {
-//   res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
-// });
 
-app.post('/login', (request, response) => {
-  User
-    .findOne({
-      username: request.body.username
-    })
-    .then(async (res) => {
-      const isValid = await bcrypt.compare(request.body.password, res.password);
-      console.log(`${request.body.username} login success`);
-      if (isValid) {
-        const token = jwt.sign({username: res.username}, SECRET, {expiresIn: '1hr'});
-        res.token = token;
-        console.log(res.token)
-        response.send(res);
-      } else {
-        response.status(401).send('Invalid Login')
-      }
-    })
+app.post('/login', basicAuth, (request, response) => {
+  const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1hr'});
+  const user = {
+    user: request.user,
+    token: token
+  }
+  response.status(200).json(user)
 })
 
 app.post('/signup', (request, response) => {
+  let [user, pass] = base64.decode(request.body.credentials).split(':')
+
   User
     .create({
-      username:  request.body.username,
-      password: request.body.password
+      username: user,
+      password: pass
     })
     .then(res => {
-      response.status(202).send(res)
+      const token = jwt.sign({username: user}, SECRET, {expiresIn: '1hr'});
+      const newUser = {
+        user: user,
+        token: token
+      }
+      response.status(202).json(newUser)
     })
     .catch(err => {
       console.log(err);
       response.status(500).send(err)
     })
-  
-  // console.log(req.body)
-  // res.send(req.body)
 })
 
+app.post('/logout', (request, response) => {
 
-// app.get('/profile', requiresAuth(), (req, res) => {
-//   res.send(JSON.stringify(req.oidc.user));
-// });
-
-// app.post('/callback', (request, response) => {
-//   console.log(response)
-//   response.status(200).send(response)
-// })
-
-// app.get('/login', requiresAuth(), (req, res) => {
-//   res.send(req.oidc.isAuthenticated())
-// } )
+})
 
 
 // CREATE | adds a new team to the database
