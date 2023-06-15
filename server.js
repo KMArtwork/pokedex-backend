@@ -13,6 +13,8 @@ const User = require('./src/auth/models/users');
 const basicAuth = require('./src/auth/middleware/basic.js');
 const bearerAuth = require('./src/auth/middleware/bearer.js')
 const cookieParser = require('cookie-parser');
+const handle404 = require('./src/errorHandlers/404')
+const handle500 = require('./src/errorHandlers/500')
 
 const PORT = process.env.PORT || 3001;
 const app = express()
@@ -70,11 +72,10 @@ app.post('/logout', (request, response) => {
 
 })
 
-
 // CREATE | adds a new team to the database
-app.post ('/teams', bearerAuth, (request, response) => {
+app.post ('/teams', bearerAuth, (request, response, next) => {
   
-  console.log('post request received from client | userId: xxx | attempting to save team to database...');
+  console.log('POST request received from client, attempting to save team to database...\n');
 
   if (request.body.length === 0) {
     response.status(406).send('Unable to save. Team must have at least 1 member')
@@ -83,13 +84,11 @@ app.post ('/teams', bearerAuth, (request, response) => {
     Team
       .create(request.body)
       .then(res => {
-        console.log('pokemon team successfully created and added to database');
+        console.log('Team successfully saved to database!');
         response.status(202).send(res);
       })
-      .catch(err => response.status(500).send(`${err} | Could not save team to database`))
+      .catch(err => next(err))
   }
-
-
 })
 
 // READ | gets all relevant teams from database > when displayed on front end, user will choose which specific team to load/display
@@ -152,7 +151,6 @@ app.put('/teams/:id', (request, response) => {
     })
 })
 
-
 // DELETE | removes a team from the database using the id
 app.delete('/teams/:id', (request, response) => {
   console.log('delete request received from client | userId: xxx | attempting to delete team from database')
@@ -168,5 +166,8 @@ app.delete('/teams/:id', (request, response) => {
       response.send(500).send(err)
     })
 })
+
+app.use('*', handle404)
+app.use(handle500)
 
 app.listen(PORT, () => console.log(`pokedex server listening on ${PORT}`))

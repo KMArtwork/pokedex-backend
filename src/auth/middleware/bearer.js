@@ -7,24 +7,23 @@ const jwt = require('jsonwebtoken')
 const SECRET = process.env.SECRET;
 
 module.exports = async (req, res, next) => {
-  if (!req.headers.authorization) {
-    res.status(401).send('Request is missing authorization header');
+  if (!req.cookies.pokeToken) {
+    next('No token found');
+  } else {
+    let token = req.cookies.pokeToken;
+    try{
+      const parsedToken = jwt.verify(token, SECRET);
+      const foundUser = await User.findOne({username: parsedToken.username});
+      if(foundUser){
+        req.user = foundUser;
+        next();
+      }
+    } 
+    catch(e) {
+      console.log('BEARER MIDDLEWARE ERROR')
+      next(e)
+    }    
   }
-  let token = req.cookies.pokeToken;
-  console.log('COOKIE TOKEN: ', token)
 
-  try{
-    const parsedToken = jwt.verify(token, SECRET);
-    const foundUser = await User.findOne({username: parsedToken.username});
-    if(foundUser){
-      req.user = foundUser;
-      next();
-    } else {
-      res.status(401).send('Invalid Token')
-    }
-  } 
-  catch(e) {
-    res.status(401).send('Unable to authenticate token', e)
-  }
 
 }
