@@ -75,7 +75,7 @@ app.post('/logout', (request, response) => {
 // CREATE | adds a new team to the database
 app.post ('/teams', bearerAuth, (request, response, next) => {
   
-  console.log('POST request received from client, attempting to save team to database...\n');
+  console.log(`POST request received from trainer ${request.user.username} to /teams.\n Attempting to save team to database...\n`);
 
   if (request.body.length === 0) {
     response.status(406).send('Unable to save. Team must have at least 1 member')
@@ -94,10 +94,9 @@ app.post ('/teams', bearerAuth, (request, response, next) => {
 // READ | gets all relevant teams from database > when displayed on front end, user will choose which specific team to load/display
 app.get('/teams', bearerAuth, (request, response) => {
 
-  console.log('get request received from client | userId: xxx | attempting to get all teams of user')
+  console.log(`GET request received from trainer ${request.user.username} to /teams. \n Attempting to fetch all of their saved teams...`)
 
   Team
-    // once Authentication is added, will need to filter by userID
     .find({trainer: request.user.username})
     .then(res => {
       let foundTeams = [];
@@ -108,63 +107,51 @@ app.get('/teams', bearerAuth, (request, response) => {
         };
         foundTeams.push(team);
       })
-      console.log('TRAINER TEAMS: ', foundTeams);
+      console.log(`${request.user.username}'s teams were found! Sending back to client...`)
       response.status(200).json(foundTeams);
     })
-    .catch(err => {
-      console.log('error querying database')
-      response.send(500).send(err);
-    })
+    .catch(err => next(err))
 })
 
 // READ | this endpoint is hit when the user chooses which team to load in the client 
-app.get('/team', (request, response) => {
+app.get('/team', bearerAuth, (request, response) => {
 
-  console.log('get request received from client | userId: xxx | attempting to load team to client')
-  console.log(request.query.id);
+  console.log(`GET request received from trainer ${request.user.username} to /teams. \n Attempting to fetch team id${request.query.id}`)
 
   Team
     .findById(request.query.id)
     .then(res =>{
+      console.log(`Team ID:${request.query.id} was found! Sending back to client...`)
       response.status(200).send(res)
     })
-    .catch(err => {
-      console.log('error loading team from database')
-      response.send(500).send(err)
-    })
+    .catch(err => next(err))
 
 })
 
 // UPDATE | updates pre-existing team that has been loaded/modified on the client
-app.put('/teams/:id', (request, response) => {
-  console.log('put request received from client | userId: xxx | attempting to update a team in the database')
+app.put('/teams/:id', bearerAuth, (request, response) => {
+  console.log(`PUT request received from trainer ${request.user.username} to /teams. \n Attempting to update team id${request.query.id}`)
 
   Team
     .findByIdAndUpdate(request.body.id, request.body, {new: true})
     .then(res => {
-      console.log(`successfully updated pokemon team, db-id: ${request.body.id}`)
+      console.log(`Team ID:${request.body.id} was successfully updated!`)
       response.status(202).send(res)
     })
-    .catch(err => {
-      console.log('error updating team')
-      response.status(404).send(`${err} | Unable to update team`)
-    })
+    .catch(err => next(err))
 })
 
 // DELETE | removes a team from the database using the id
-app.delete('/teams/:id', (request, response) => {
-  console.log('delete request received from client | userId: xxx | attempting to delete team from database')
+app.delete('/teams/:id', bearerAuth, (request, response) => {
+  console.log(`DELETE request received from trainer ${request.user.username} to /teams. \n Attempting to delete team id${request.params.id}\n`)
 
   Team
     .findByIdAndDelete(request.params.id)
     .then(res => {
-      console.log('successfully deleted team')
-      response.status(200).send('team sucessfully deleted')
+      console.log('Team was successfully deleted!')
+      response.status(200).send('Team was successfully deleted!')
     })
-    .catch(err => {
-      console.log('unable to delete team from database')
-      response.send(500).send(err)
-    })
+    .catch(err => next(err))
 })
 
 app.use('*', handle404)
