@@ -18,7 +18,7 @@ module.exports = async (request, response, next) => {
     })
     .then(async (foundUser) => {
       const isValid = await bcrypt.compare(pass, foundUser.password);
-
+      // console.log('FOUND USER BASIC AUTH: ', foundUser)
       if (isValid) {
         console.log(`${user} login success!`);
         request.user = foundUser; 

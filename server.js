@@ -45,19 +45,32 @@ app.post('/login', basicAuth, (request, response) => {
     .json(user)
 })
 
-app.post('/signup', (request, response) => {
+app.post('/signup', async (request, response) => {
   let [user, pass] = base64.decode(request.body.credentials).split(':')
+  let userIsTaken;
+  try{
+    userIsTaken = await User.findOne({username: user});
+  }
+  catch(e){
+    response.status(500).send(e)
+  }
 
-  User
+  if (userIsTaken){
+    response.status(205).send('Username is taken')
+  } 
+  else {
+    User
     .create({
       username: user,
       password: pass
     })
     .then(res => {
+      console.log('SIGNUP SERVER RESPONSE: ', res)
       const token = jwt.sign({username: user}, SECRET, {expiresIn: '1hr'});
       const newUser = {
         user: user,
-        token: token
+        token: token,
+        _id: res._id
       }
       response.cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true});
       response.status(202).json(newUser);
@@ -65,7 +78,8 @@ app.post('/signup', (request, response) => {
     .catch(err => {
       console.log(err);
       response.status(500).send(err)
-    })
+    }) 
+  }
 })
 
 app.post('/logout', (request, response) => {
