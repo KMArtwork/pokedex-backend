@@ -116,7 +116,7 @@ app.get('/teams', bearerAuth, (request, response) => {
 // READ | this endpoint is hit when the user chooses which team to load in the client 
 app.get('/team', bearerAuth, (request, response) => {
 
-  console.log(`GET request received from trainer ${request.user.username} to /teams. \n Attempting to fetch team id${request.query.id}`)
+  console.log(`GET request received from trainer ${request.user.username} to /teams. \n Attempting to fetch team id: ${request.query.id}`)
 
   Team
     .findById(request.query.id)
@@ -130,12 +130,14 @@ app.get('/team', bearerAuth, (request, response) => {
 
 // UPDATE | updates pre-existing team that has been loaded/modified on the client
 app.put('/teams/:id', bearerAuth, (request, response) => {
-  console.log(`PUT request received from trainer ${request.user.username} to /teams. \n Attempting to update team id${request.query.id}`)
+  console.log(`PUT request received from trainer ${request.user.username} to /teams. \n Attempting to update team id: ${request.params.id}`)
+
+  console.log(request.body)
 
   Team
-    .findByIdAndUpdate(request.body.id, request.body, {new: true})
+    .findByIdAndUpdate(request.params.id, request.body, {new: true})
     .then(res => {
-      console.log(`Team ID:${request.body.id} was successfully updated!`)
+      console.log(`Team ID:${request.params.id} was successfully updated!`)
       response.status(202).send(res)
     })
     .catch(err => next(err))
@@ -143,7 +145,7 @@ app.put('/teams/:id', bearerAuth, (request, response) => {
 
 // DELETE | removes a team from the database using the id
 app.delete('/teams/:id', bearerAuth, (request, response) => {
-  console.log(`DELETE request received from trainer ${request.user.username} to /teams. \n Attempting to delete team id${request.params.id}\n`)
+  console.log(`DELETE request received from trainer ${request.user.username} to /teams. \n Attempting to delete team id: ${request.params.id}\n`)
 
   Team
     .findByIdAndDelete(request.params.id)
