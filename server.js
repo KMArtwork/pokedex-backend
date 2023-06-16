@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const bcrypt = require('bcrypt');
+const session = require('express-session');
 const jwt = require('jsonwebtoken');
 const SECRET = process.env.SECRET;
 const base64 = require('base-64');
@@ -22,9 +22,18 @@ const app = express()
 
 // middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app'],
-  credentials: true
+  origin: ['http://localhost:3000', 'http://localhost:3001', process.env.FRONTEND_URL],
+  credentials: true,
 }));
+app.use(session({
+  secret: process.env.SECRET,
+  resave: true,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: 'none',
+    secure: true
+  }
+}))
 app.use(express.json({limit: '5mb'}));
 app.use(cookieParser());
 
