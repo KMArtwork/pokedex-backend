@@ -22,7 +22,7 @@ const app = express()
 
 // middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app/'],
   credentials: true
 }));
 app.use(express.json({limit: '5mb'}));
