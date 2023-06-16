@@ -8,6 +8,7 @@ const SECRET = process.env.SECRET;
 
 module.exports = async (req, res, next) => {
   if (!req.cookies.pokeToken) {
+    console.log('BEARER AUTH REQUEST: ', req)
     next('No token found');
   } else {
     let token = req.cookies.pokeToken;
