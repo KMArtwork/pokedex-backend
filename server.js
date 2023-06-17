@@ -25,9 +25,6 @@ app.set('trust proxy', 1);
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app', 'https://pokedex-frontend.onrender.com/'],
   credentials: true,
-  allowedHeaders:
-  "Content-Type, Authorization, Content-Length, X-Requested-With, Accept",
-  methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 app.use(session({
   secret: process.env.SECRET,
