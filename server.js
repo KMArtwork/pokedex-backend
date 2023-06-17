@@ -32,7 +32,7 @@ app.use(session({
   cookie: {
     sameSite: 'none',
     secure: true,
-    domain: 'https://kmdevsign-pokedex.netlify.app'
+    domain: 'kmdevsign-pokedex.netlify.app'
   }
 }))
 app.use(express.json({limit: '5mb'}));
