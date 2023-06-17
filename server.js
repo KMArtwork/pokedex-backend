@@ -23,7 +23,7 @@ const app = express()
 // middleware
 app.set('trust proxy', 1);
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app', 'https://pokedex-frontend.onrender.com/'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app', 'https://pokedex-frontend.onrender.com'],
   credentials: true,
 }));
 app.use(session({
@@ -40,11 +40,6 @@ app.use(session({
 }))
 app.use(express.json({limit: '5mb'}));
 app.use(cookieParser());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-})
-
 
 mongoose.connect(process.env.DATABASE_URL);
 
