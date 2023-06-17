@@ -29,10 +29,11 @@ app.use(session({
   secret: process.env.SECRET,
   resave: true,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     sameSite: 'none',
     secure: true,
-    domain: 'kmdevsign-pokedex.netlify.app'
+    domain: '.netlify.app',
   }
 }))
 app.use(express.json({limit: '5mb'}));
