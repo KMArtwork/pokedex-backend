@@ -37,6 +37,7 @@ app.use(session({
 }))
 app.use(express.json({limit: '5mb'}));
 app.use(cookieParser());
+app.set('trust proxy', 1);
 
 
 mongoose.connect(process.env.DATABASE_URL);
