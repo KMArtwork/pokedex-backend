@@ -19,7 +19,6 @@ const handle500 = require('./src/errorHandlers/500')
 const PORT = process.env.PORT || 3001;
 const app = express()
 
-
 // middleware
 app.set('trust proxy', 1);
 app.use(cors({
@@ -36,6 +35,7 @@ app.use(session({
     secure: true,
     httpOnly: true,
     maxAge: 1 * 60 * 60 * 1000,
+    domain: '.onrender.com'
   }
 }))
 app.use(express.json({limit: '5mb'}));
@@ -50,6 +50,7 @@ app.post('/login', basicAuth, (request, response) => {
     token: token
   }
   console.log('LOGIN TOKEN: ', token)
+  request.session.save();
   response
     .cookie('pokeToken', token)
     .status(200)
