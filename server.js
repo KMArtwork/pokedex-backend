@@ -21,6 +21,7 @@ const app = express()
 
 
 // middleware
+app.set('trust proxy', 1);
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app'],
   credentials: true,
@@ -33,16 +34,13 @@ app.use(session({
   cookie: {
     sameSite: 'none',
     secure: true,
-    domain: '.netlify.app',
+    httpOnly: true,
   }
 }))
 app.use(express.json({limit: '5mb'}));
 app.use(cookieParser());
-app.set('trust proxy', 1);
-
 
 mongoose.connect(process.env.DATABASE_URL);
-
 
 app.post('/login', basicAuth, (request, response) => {
   const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1hr'});
