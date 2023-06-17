@@ -35,6 +35,7 @@ app.use(session({
     sameSite: 'none',
     secure: true,
     httpOnly: true,
+    maxAge: 1 * 60 * 60 * 1000,
   }
 }))
 app.use(express.json({limit: '5mb'}));
@@ -50,7 +51,7 @@ app.post('/login', basicAuth, (request, response) => {
   }
   console.log('LOGIN TOKEN: ', token)
   response
-    .cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true})
+    .cookie('pokeToken', token)
     .status(200)
     .json(user)
 })
