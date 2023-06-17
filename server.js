@@ -23,7 +23,7 @@ const app = express()
 // middleware
 app.set('trust proxy', 1);
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kmdevsign-pokedex.netlify.app', 'https://pokedex-frontend.onrender.com/'],
   credentials: true,
   allowedHeaders:
   "Content-Type, Authorization, Content-Length, X-Requested-With, Accept",
@@ -31,7 +31,7 @@ app.use(cors({
 }));
 app.use(session({
   secret: process.env.SECRET,
-  resave: true,
+  resave: false,
   saveUninitialized: false,
   proxy: true,
   cookie: {
