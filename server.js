@@ -35,8 +35,9 @@ app.use(session({
     secure: true,
     httpOnly: true,
     maxAge: 1 * 60 * 60 * 1000,
-    domain: '.onrender.com'
-  }
+    // domain: '.onrender.com'
+  },
+  rolling: true,
 }))
 app.use(express.json({limit: '5mb'}));
 app.use(cookieParser());
@@ -50,9 +51,13 @@ app.post('/login', basicAuth, (request, response) => {
     token: token
   }
   console.log('LOGIN TOKEN: ', token)
-  request.session.save();
+  // request.session.save();
   response
-    .cookie('pokeToken', token)
+    .cookie('pokeToken', token, {    
+    sameSite: 'none',
+    secure: true,
+    httpOnly: true,
+    maxAge: 1 * 60 * 60 * 1000,})
     .status(200)
     .json(user)
 })
