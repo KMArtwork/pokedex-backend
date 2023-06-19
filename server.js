@@ -48,7 +48,6 @@ app.post('/login', basicAuth, (request, response) => {
   const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1hr'});
   const user = {
     user: request.user,
-    token: token
   }
   console.log('LOGIN TOKEN: ', token)
   // request.session.save();
@@ -86,7 +85,6 @@ app.post('/signup', async (request, response) => {
       const token = jwt.sign({username: user}, SECRET, {expiresIn: '1hr'});
       const newUser = {
         user: user,
-        token: token,
         _id: res._id
       }
       response.cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true});
@@ -97,6 +95,12 @@ app.post('/signup', async (request, response) => {
       response.status(500).send(err)
     }) 
   }
+})
+
+app.post('/reauthenticate', bearerAuth, (request, response, next) => {
+  console.log(`Trainer ${request.user.username} has a valid token & has been reauthenticated.`)
+
+  response.status(200).json(request.user)
 })
 
 app.post('/logout', (request, response) => {
