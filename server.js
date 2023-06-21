@@ -97,14 +97,30 @@ app.post('/signup', async (request, response) => {
   }
 })
 
-app.post('/reauthenticate', bearerAuth, (request, response, next) => {
-  console.log(`Trainer ${request.user.username} has a valid token & has been reauthenticated.`)
-
-  response.status(200).json(request.user)
+app.post('/reauthenticate', async (request, response, next) => {
+  if (!request.cookies.pokeToken) {
+    response.status(204).send('No cookie found, please log in');
+  } else {
+    let token = request.cookies.pokeToken;
+    try{
+      const parsedToken = jwt.verify(token, SECRET);
+      const foundUser = await User.findOne({username: parsedToken.username});
+      if(foundUser){
+        response.status(200).send(foundUser)
+      }
+    } 
+    catch(e) {
+      console.log('Could not find user')
+      response.status(204).send('Could not find user')
+    }    
+  }
 })
 
 app.post('/logout', (request, response) => {
-
+  response
+    .clearCookie('pokeToken')
+    .status(200)
+    .send('User successfully logged out')
 })
 
 // CREATE | adds a new team to the database
