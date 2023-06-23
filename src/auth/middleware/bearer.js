@@ -1,14 +1,14 @@
 'use strict';
 
-const base64 = require('base-64');
-const bcrypt = require('bcrypt');
+const { accessCookieConfig, refreshCookieConfig } = require('../../configs/cookies');
+const { accessTokenConfig, refreshTokenConfig } = require('../../configs/tokens');
 const User = require('../models/users');
 const jwt = require('jsonwebtoken')
 const SECRET = process.env.SECRET;
 
 module.exports = async (req, res, next) => {
   console.log('COOKIE TOKENS: ', req.cookies)
-  if (!req.cookies.pokeToken) {
+  if (!req.cookies.pokeToken && !req.cookies.pokeRefresh) {
     // console.log('BEARER AUTH REQUEST: ', req)
     next('No Access Token found');
   } else {
@@ -27,24 +27,15 @@ module.exports = async (req, res, next) => {
         console.log('Access Token expired, attempting to refresh token...')
         try{
           const parsedRefresh = jwt.verify(refresh, SECRET);
-          const newToken = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: 120});
-          const newRefresh = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: '1d'});
+          const newToken = jwt.sign({username: parsedRefresh.username}, SECRET, accessTokenConfig);
+          const newRefresh = jwt.sign({username: parsedRefresh.username}, SECRET, refreshTokenConfig);
           const foundUser = await User.findOne({username: parsedRefresh.username});
           if(foundUser){
             req.user = foundUser;
             res
-              .cookie('pokeToken', newToken, {
-                sameSite: 'none',
-                secure: true,
-                httpOnly: true,
-                maxAge: 1 * 60 * 60 * 1000
-              })
-              .cookie('pokeRefresh', newRefresh, {
-                sameSite: 'none',
-                secure: true,
-                httpOnly: true,
-                maxAge: 24 * 60 * 60 * 1000
-              });
+              .cookie('pokeToken', newToken, accessCookieConfig)
+              .cookie('pokeRefresh', newRefresh, refreshCookieConfig);
+            console.log(`${parsedRefresh.username}'s tokens successfully refreshed!`)
             next();
           }
         }

@@ -16,6 +16,8 @@ const cookieParser = require('cookie-parser');
 const handle404 = require('./src/errorHandlers/404')
 const handle500 = require('./src/errorHandlers/500');
 
+const { accessCookieConfig, refreshCookieConfig } = require('./src/configs/cookies')
+const { accessTokenConfig, refreshTokenConfig } = require('./src/configs/tokens')
 const PORT = process.env.PORT;
 const app = express()
 
@@ -44,24 +46,15 @@ app.use(cookieParser());
 mongoose.connect(process.env.DATABASE_URL);
 
 app.post('/login', basicAuth, (request, response) => {
-  const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: 120});
-  const refresh = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1d'});
+  const token = jwt.sign({username: request.user.username}, SECRET, accessTokenConfig);
+  const refresh = jwt.sign({username: request.user.username}, SECRET, refreshTokenConfig);
   const user = {
     user: request.user,
   }
   console.log('LOGIN TOKEN: ', token)
   response
-    .cookie('pokeToken', token, {    
-    sameSite: 'none',
-    secure: true,
-    httpOnly: true,
-    maxAge: 1 * 60 * 60 * 1000,})
-    .cookie('pokeRefresh',  refresh, {
-      sameSite: 'none',
-      secure: true,
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000
-    })
+    .cookie('pokeToken', token, accessCookieConfig)
+    .cookie('pokeRefresh',  refresh, refreshCookieConfig)
     .status(200)
     .json(user)
 })
@@ -87,12 +80,15 @@ app.post('/signup', async (request, response) => {
     })
     .then(res => {
       console.log('SIGNUP SERVER RESPONSE: ', res)
-      const token = jwt.sign({username: user}, SECRET, {expiresIn: '1hr'});
+      const token = jwt.sign({username: user}, SECRET, accessTokenConfig);
+      const refresh = jwt.sign({username: user}, SECRET, refreshTokenConfig);
       const newUser = {
         user: user,
         _id: res._id
       }
-      response.cookie('pokeToken', token, {maxAge: 1 * 60 * 60 * 1000, httpOnly: true});
+      response
+        .cookie('pokeToken', token, accessCookieConfig)
+        .cookie('pokeRefresh', refresh, refreshCookieConfig)
       response.status(202).json(newUser);
     })
     .catch(err => {
@@ -120,24 +116,14 @@ app.post('/reauthenticate', async (request, response, next) => {
         console.log('Access Token expired, attempting to refresh token...')
         try{
           const parsedRefresh = jwt.verify(refresh, SECRET);
-          const newToken = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: 120});
-          const newRefresh = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: '1d'});
+          const newToken = jwt.sign({username: parsedRefresh.username}, SECRET, accessTokenConfig);
+          const newRefresh = jwt.sign({username: parsedRefresh.username}, SECRET, refreshTokenConfig);
           const foundUser = await User.findOne({username: parsedRefresh.username});
           if(foundUser){
             request.user = foundUser;
             response
-              .cookie('pokeToken', newToken, {
-                sameSite: 'none',
-                secure: true,
-                httpOnly: true,
-                maxAge: 1 * 60 * 60 * 1000
-              })
-              .cookie('pokeRefresh', newRefresh, {
-                sameSite: 'none',
-                secure: true,
-                httpOnly: true,
-                maxAge: 24 * 60 * 60 * 1000
-              })
+              .cookie('pokeToken', newToken, accessCookieConfig)
+              .cookie('pokeRefresh', newRefresh, refreshCookieConfig)
               .status(200)
               .send(foundUser)
           }
