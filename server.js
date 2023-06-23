@@ -14,9 +14,9 @@ const basicAuth = require('./src/auth/middleware/basic.js');
 const bearerAuth = require('./src/auth/middleware/bearer.js')
 const cookieParser = require('cookie-parser');
 const handle404 = require('./src/errorHandlers/404')
-const handle500 = require('./src/errorHandlers/500')
+const handle500 = require('./src/errorHandlers/500');
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 const app = express()
 
 // middleware
@@ -35,7 +35,6 @@ app.use(session({
     secure: true,
     httpOnly: true,
     maxAge: 1 * 60 * 60 * 1000,
-    // domain: '.onrender.com'
   },
   rolling: true,
 }))
@@ -45,18 +44,24 @@ app.use(cookieParser());
 mongoose.connect(process.env.DATABASE_URL);
 
 app.post('/login', basicAuth, (request, response) => {
-  const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1hr'});
+  const token = jwt.sign({username: request.user.username}, SECRET, {expiresIn: 120});
+  const refresh = jwt.sign({username: request.user.username}, SECRET, {expiresIn: '1d'});
   const user = {
     user: request.user,
   }
   console.log('LOGIN TOKEN: ', token)
-  // request.session.save();
   response
     .cookie('pokeToken', token, {    
     sameSite: 'none',
     secure: true,
     httpOnly: true,
     maxAge: 1 * 60 * 60 * 1000,})
+    .cookie('pokeRefresh',  refresh, {
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000
+    })
     .status(200)
     .json(user)
 })
@@ -98,8 +103,8 @@ app.post('/signup', async (request, response) => {
 })
 
 app.post('/reauthenticate', async (request, response, next) => {
-  if (!request.cookies.pokeToken) {
-    response.status(204).send('No cookie found, please log in');
+  if (!request.cookies.pokeToken && !request.cookies.pokeRefresh) {
+    response.status(204).send('No cookie(s) found, please log in');
   } else {
     let token = request.cookies.pokeToken;
     try{
@@ -110,8 +115,41 @@ app.post('/reauthenticate', async (request, response, next) => {
       }
     } 
     catch(e) {
-      console.log('Could not find user')
-      response.status(204).send('Could not find user')
+      if (e.message === 'jwt expired'){
+        let refresh = request.cookies.pokeRefresh;
+        console.log('Access Token expired, attempting to refresh token...')
+        try{
+          const parsedRefresh = jwt.verify(refresh, SECRET);
+          const newToken = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: 120});
+          const newRefresh = jwt.sign({username: parsedRefresh.username}, SECRET, {expiresIn: '1d'});
+          const foundUser = await User.findOne({username: parsedRefresh.username});
+          if(foundUser){
+            request.user = foundUser;
+            response
+              .cookie('pokeToken', newToken, {
+                sameSite: 'none',
+                secure: true,
+                httpOnly: true,
+                maxAge: 1 * 60 * 60 * 1000
+              })
+              .cookie('pokeRefresh', newRefresh, {
+                sameSite: 'none',
+                secure: true,
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000
+              })
+              .status(200)
+              .send(foundUser)
+          }
+        }
+        catch(err){
+          console.log('REAUTHENTICATION, REFRESH TOKEN ERROR')
+          response.status(204).send('No Refresh Token, Please Sign In')
+        }
+      } else {
+        console.log('Could not find user')
+        response.status(204).send('Could not find user')
+      }
     }    
   }
 })
@@ -119,12 +157,13 @@ app.post('/reauthenticate', async (request, response, next) => {
 app.post('/logout', (request, response) => {
   response
     .clearCookie('pokeToken')
+    .clearCookie('pokeRefresh')
     .status(200)
     .send('User successfully logged out')
 })
 
 // CREATE | adds a new team to the database
-app.post ('/teams', bearerAuth, (request, response, next) => {
+app.post ('/teams', bearerAuth,  (request, response, next) => {
   
   console.log(`POST request received from trainer ${request.user.username} to /teams.\n Attempting to save team to database...\n`);
 
@@ -158,7 +197,7 @@ app.get('/teams', bearerAuth, (request, response) => {
         };
         foundTeams.push(team);
       })
-      console.log(`${request.user.username}'s teams were found! Sending back to client...`)
+      console.log(`Trainer ${request.user.username}'s teams were found! Sending back to client...`)
       response.status(200).json(foundTeams);
     })
     .catch(err => next(err))
