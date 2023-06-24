@@ -111,7 +111,8 @@ app.post('/reauthenticate', async (request, response, next) => {
       }
     } 
     catch(e) {
-      if (e.message === 'jwt expired'){
+      console.log('yo', e.message)
+      if (e.message === 'jwt expired' || e.message === 'jwt must be provided'){
         let refresh = request.cookies.pokeRefresh;
         console.log('Access Token expired, attempting to refresh token...')
         try{
