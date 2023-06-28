@@ -2,7 +2,9 @@
 
 **Author**: Kawika Miller
 
-**Version** 1.1
+**Version** 1.2
+
+[**Client Repo**](https://github.com/KMArtwork/pokedex)
 
 ## Overview
 This is the backend of the my Pokedex app which handles user signup & authentication and CRUD operations on the database
