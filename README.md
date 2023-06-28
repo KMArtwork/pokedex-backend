@@ -46,5 +46,11 @@ This was built using Node.js, MongoDB, and Mongoose
   - This route is hit when the app is refreshed &/o the page is reloaded
   - Checks to see if JWT stored in cookie is still valid (i.e. not expired) and if it is then it sends a 200 response to the client
 
+2023-06-20 - 2023-06-28
+- Clear cookies on logout
+- Add refresh token & implement refresh token rotation
+- Add config modules for cookies and tokens
+- Adjust reauthentication route to handle missing access token
+
 
 ## Credit and Collaborations
