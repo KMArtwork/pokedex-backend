@@ -152,9 +152,57 @@ app.post('/logout', (request, response) => {
     .send('User successfully logged out')
 })
 
+app.get('/pockets', async (request, response) => {
+  let pocketsWithSubPockets = [];
+  let promises = [];
+  if(cache.pockets){
+    console.log('Found pockets in cache, sending cache response back')
+    response.status(200).send(cache.pockets)
+  }
+  else{
+    await axios
+    .get('https://pokeapi.co/api/v2/item-pocket/')
+    .then(response => {
+      let pockets = response.data.results;
+      for(const pocket of pockets){
+        console.log(`fetching ${pocket.name} data...`)
+        promises.push(
+          axios
+            .get(pocket.url)
+            .then(res => {
+              let nPocket = {
+                ...pocket,
+                categories: res.data.categories.sort((a,b) => {
+                  if (a.name > b.name){
+                    return 1
+                  } else if (a.name < b.name){
+                    return -1
+                  } else return 0;
+                })
+              };
+              pocketsWithSubPockets = [...pocketsWithSubPockets, nPocket];
+            })
+        );
+      }
+    })
+    .catch(e => {
+      console.error(e);
+      next(e);
+    })
+
+    Promise
+      .all(promises)
+      .then(res => {
+        console.log('All pockets fetched successfully, sending response back')
+        cache.pockets = pocketsWithSubPockets;
+        response.status(200).send(pocketsWithSubPockets);
+      })    
+  }
+
+})
+
 app.get('/items/:id', (request, response) => {
   let itemId = request.params.id;
-
   try{
     if (cache.items[itemId]){
       console.log('item found in cache')
