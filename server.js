@@ -24,6 +24,8 @@ const app = express();
 const cache = require('./src/cache');
 const { default: axios } = require('axios');
 
+const { pokeRoutes } = require('./src/routes/pokemonRoute')
+
 // middleware
 app.set('trust proxy', 1);
 app.use(cors({
@@ -47,6 +49,8 @@ app.use(express.json({limit: '20mb'}));
 app.use(cookieParser());
 
 mongoose.connect(process.env.DATABASE_URL);
+
+app.use(pokeRoutes);
 
 app.post('/login', basicAuth, (request, response) => {
   const token = jwt.sign({username: request.user.username}, SECRET, accessTokenConfig);
