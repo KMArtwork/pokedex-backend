@@ -2,10 +2,6 @@
 
 const express = require('express');
 require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const SECRET = process.env.SECRET;
-const base64 = require('base-64');
-const PORT = process.env.PORT;
 const pokeRoutes = express();
 const { default: axios } = require('axios');
 
