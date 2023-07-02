@@ -1,6 +1,23 @@
 'use strict';
-
 const axios = require('axios')
+
+// reformat edge case search queries because of how pokeapi is set up
+const handleSearchQueryEdgeCases = (searchQuery) => {
+  switch (searchQuery) {
+    case 'wormadam':
+      return 'wormadam-plant';
+    case 'basculin':
+      return 'basculin-red-striped';
+    case 'darmanitan':
+      return 'darmanitan-standard';
+    case 'zygarde':
+      return 'zygarde-50';
+    case 'giratina':
+      return 'giratina-altered';
+    default:
+      return searchQuery;
+  }
+}
 
 const supplementMoveData = async (pokemon) => {
   // spread operators to avoid 'TypeError: object is not extensible / object is read only' errors
@@ -176,4 +193,4 @@ const fetchAbilityDescriptions = async (pokemon) => {
     })
 }
 
-module.exports = {supplementMoveData, fetchTypeEffectiveness, fetchPokedexEntries, fetchAbilityDescriptions}
+module.exports = {supplementMoveData, fetchTypeEffectiveness, fetchPokedexEntries, fetchAbilityDescriptions, handleSearchQueryEdgeCases}

@@ -10,11 +10,11 @@ const pokeRoutes = express();
 const { default: axios } = require('axios');
 
 const { Pokemon } = require('../lib/pokemon');
-const { supplementMoveData, fetchAbilityDescriptions, fetchPokedexEntries, fetchTypeEffectiveness } = require('../lib/search');
+const { supplementMoveData, fetchAbilityDescriptions, fetchPokedexEntries, fetchTypeEffectiveness, handleSearchQueryEdgeCases } = require('../lib/search');
 const cache = require('../cache');
 
 pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
-  let searchQuery = request.params.searchQuery;
+  let searchQuery = handleSearchQueryEdgeCases(request.params.searchQuery);
 
   axios
     .get(`https://pokeapi.co/api/v2/pokemon/${searchQuery}`)
