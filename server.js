@@ -11,15 +11,20 @@ const base64 = require('base-64');
 const Team = require('./dbmodels/pkmnteam');
 const User = require('./src/auth/models/users');
 const basicAuth = require('./src/auth/middleware/basic.js');
-const bearerAuth = require('./src/auth/middleware/bearer.js')
+const bearerAuth = require('./src/auth/middleware/bearer.js');
 const cookieParser = require('cookie-parser');
-const handle404 = require('./src/errorHandlers/404')
+const handle404 = require('./src/errorHandlers/404');
 const handle500 = require('./src/errorHandlers/500');
 
-const { accessCookieConfig, refreshCookieConfig } = require('./src/configs/cookies')
-const { accessTokenConfig, refreshTokenConfig } = require('./src/configs/tokens')
+const { accessCookieConfig, refreshCookieConfig } = require('./src/configs/cookies');
+const { accessTokenConfig, refreshTokenConfig } = require('./src/configs/tokens');
 const PORT = process.env.PORT;
-const app = express()
+const app = express();
+
+const cache = require('./src/cache');
+const { default: axios } = require('axios');
+
+const { pokeRoutes } = require('./src/routes/pokemonRoute')
 
 // middleware
 app.set('trust proxy', 1);
@@ -40,10 +45,16 @@ app.use(session({
   },
   rolling: true,
 }))
-app.use(express.json({limit: '5mb'}));
+app.use(express.json({limit: '20mb'}));
 app.use(cookieParser());
 
 mongoose.connect(process.env.DATABASE_URL);
+
+app.get('/test', (request, response) => {
+  response.status(200).send('OK!')
+})
+
+app.use(pokeRoutes);
 
 app.post('/login', basicAuth, (request, response) => {
   const token = jwt.sign({username: request.user.username}, SECRET, accessTokenConfig);
@@ -148,6 +159,97 @@ app.post('/logout', (request, response) => {
     .status(200)
     .send('User successfully logged out')
 })
+
+app.get('/pockets', async (request, response) => {
+  let pocketsWithSubPockets = [];
+  let promises = [];
+  if(cache.pockets){
+    console.log('Found pockets in cache, sending cache response back')
+    response.status(200).send(cache.pockets)
+  }
+  else{
+    await axios
+    .get('https://pokeapi.co/api/v2/item-pocket/')
+    .then(response => {
+      let pockets = response.data.results;
+      for(const pocket of pockets){
+        console.log(`fetching ${pocket.name} data...`)
+        promises.push(
+          axios
+            .get(pocket.url)
+            .then(res => {
+              let nPocket = {
+                ...pocket,
+                categories: res.data.categories.sort((a,b) => {
+                  if (a.name > b.name){
+                    return 1
+                  } else if (a.name < b.name){
+                    return -1
+                  } else return 0;
+                })
+              };
+              pocketsWithSubPockets = [...pocketsWithSubPockets, nPocket];
+            })
+        );
+      }
+    })
+    .catch(e => {
+      console.error(e);
+      next(e);
+    })
+
+    Promise
+      .all(promises)
+      .then(res => {
+        console.log('All pockets fetched successfully, sending response back')
+        cache.pockets = pocketsWithSubPockets;
+        response.status(200).send(pocketsWithSubPockets);
+      })    
+  }
+
+})
+
+app.get('/items/:id', (request, response) => {
+  let itemId = request.params.id;
+  try{
+    if (cache.items[itemId]){
+      console.log('item found in cache')
+      response.status(200).send(cache.items[itemId]);
+    } 
+    else {
+      console.log('fetching item data from pokeapi', itemId)
+      axios
+        .get(`https://pokeapi.co/api/v2/item/${itemId}`)
+        .then(res =>{
+          let nItem = {
+            name: res.data.name,
+            attributes: res.data.attributes,
+            cost: res.data.cost,
+            description: '',
+            fling: {
+              effect: res.data.fling_effect,
+              power: res.data.fling_power
+            },
+            sprite: res.data.sprites.default
+          };
+
+            for(const entry of res.data.flavor_text_entries){
+              if (entry.language.name === 'en'){
+                nItem.description = entry.text;
+                break;
+              }
+            }
+
+          cache.items[itemId] = nItem;
+          response.status(200).send(nItem);         
+        })
+    }
+  }
+  catch(e){
+    console.error(e);
+  }
+})
+
 
 // CREATE | adds a new team to the database
 app.post ('/teams', bearerAuth,  (request, response, next) => {
