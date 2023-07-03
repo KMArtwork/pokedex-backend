@@ -50,6 +50,10 @@ app.use(cookieParser());
 
 mongoose.connect(process.env.DATABASE_URL);
 
+app.get('/test', (request, response) => {
+  response.status(200).send('OK!')
+})
+
 app.use(pokeRoutes);
 
 app.post('/login', basicAuth, (request, response) => {
@@ -213,7 +217,7 @@ app.get('/items/:id', (request, response) => {
       response.status(200).send(cache.items[itemId]);
     } 
     else {
-      console.log('fetching item data from pokeapi')
+      console.log('fetching item data from pokeapi', itemId)
       axios
         .get(`https://pokeapi.co/api/v2/item/${itemId}`)
         .then(res =>{
@@ -221,13 +225,21 @@ app.get('/items/:id', (request, response) => {
             name: res.data.name,
             attributes: res.data.attributes,
             cost: res.data.cost,
-            description: res.data.effect_entries[0].short_effect,
+            description: '',
             fling: {
               effect: res.data.fling_effect,
               power: res.data.fling_power
             },
             sprite: res.data.sprites.default
           };
+
+            for(const entry of res.data.flavor_text_entries){
+              if (entry.language.name === 'en'){
+                nItem.description = entry.text;
+                break;
+              }
+            }
+
           cache.items[itemId] = nItem;
           response.status(200).send(nItem);         
         })
