@@ -12,6 +12,8 @@ const cache = require('../cache');
 pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
   let searchQuery = handleSearchQueryEdgeCases(request.params.searchQuery);
 
+  console.log('SEARCH QUERY: ', searchQuery)
+
   axios
     .get(`https://pokeapi.co/api/v2/pokemon/${searchQuery}`)
     .then(res => {
@@ -170,16 +172,16 @@ pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
           lb: parseInt((res.data.weight / 4.536).toFixed(2))
         };
         pokemon.forms = [];
-        if (res.data.forms.length > 1) {
-          res.data.forms.forEach(form => {
-            let f = {
-              name: form.name,
-              url: form.url,
-              apiId: form.url.match(/[^v]\d+/)[0].slice(1)
-            }
-            pokemon.forms.push(f);
-          })
+        for(const form of res.data.forms){
+          let f = {
+            name: form.name,
+            url: form.url,
+            apiId: form.url.match(/[^v]\d+/)[0].slice(1)
+          }
+          pokemon.forms.push(f);
+          console.log('FORM: ', f)
         }
+        pokemon.species = res.data.species;
         return pokemon;        
       }
     })

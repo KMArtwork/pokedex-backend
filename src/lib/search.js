@@ -109,7 +109,7 @@ const fetchPokedexEntries = async (pokemon) => {
   console.log('fetching pokedex entries for all generations of this pokemon...')
 
   try {
-    let response = await axios(`https://pokeapi.co/api/v2/pokemon-species/${pokemon.name.split('-')[0]}`);
+    let response = await axios(pokemon.species.url);
 
     response.data.flavor_text_entries.forEach(element => {
       if (element.language.name === 'en') {
