@@ -4,6 +4,10 @@ const axios = require('axios')
 // reformat edge case search queries because of how pokeapi is set up
 const handleSearchQueryEdgeCases = (searchQuery) => {
   switch (searchQuery) {
+    case 'nidoran♀':
+      return 'nidoran-f';
+    case 'nidoran♂':
+      return 'nidoran-m';
     case 'wormadam':
       return 'wormadam-plant';
     case 'basculin':

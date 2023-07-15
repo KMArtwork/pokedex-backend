@@ -159,8 +159,8 @@ const createPokemon = (fetchedPokemon) => {
 }
 
 pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
-  let searchQuery = handleSearchQueryEdgeCases(request.params.searchQuery);
-
+  let searchQuery = handleSearchQueryEdgeCases(request.params.searchQuery.toLowerCase());
+  console.log('SEARCH QUERY: ', searchQuery)
   axios
     .get(`https://pokeapi.co/api/v2/pokemon/${searchQuery}`)
     .then(res => {
