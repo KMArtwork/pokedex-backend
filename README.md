@@ -37,6 +37,14 @@ This was built using Node.js, Express.js, MongoDB, and Mongoose
 
 ## Change Log
 
+### 2023-07-04 - 2023-07-17
+- rework the main pokemon fetch function
+  - break larger function bodies into smaller ones
+- add alternate form route and refactor search function
+  - handles 'gigantamax' and 'mega' form queries
+- refresh token expires in 30d instead of 24h
+- handle nidoran edge case
+
 ### 2023-06-29 - 2023-07-03
 - Handle proxy requests from Client to PokeAPI
 - Add server cache
