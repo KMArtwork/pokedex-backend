@@ -4,6 +4,10 @@ const axios = require('axios')
 // reformat edge case search queries because of how pokeapi is set up
 const handleSearchQueryEdgeCases = (searchQuery) => {
   switch (searchQuery) {
+    case 'nidoran♀':
+      return 'nidoran-f';
+    case 'nidoran♂':
+      return 'nidoran-m';
     case 'wormadam':
       return 'wormadam-plant';
     case 'basculin':
@@ -21,7 +25,7 @@ const handleSearchQueryEdgeCases = (searchQuery) => {
 
 const supplementMoveData = async (pokemon) => {
   // spread operators to avoid 'TypeError: object is not extensible / object is read only' errors
-  console.log('supplementing move data with missing info...')
+  console.log('supplementing move data with missing info... \n')
   let newPokemon = {...pokemon};
   let newMoves = [];
   let promises = []; 
@@ -61,13 +65,13 @@ const supplementMoveData = async (pokemon) => {
   return Promise
     .all(promises)
     .then(() => {
-      console.log('SUPPLEMENT MOVE DATA FINISHED')
+      console.log('FINISHED SUPPLEMENTING MOVE DATA  \n')
       return newPokemon
     })
 }
 
 const fetchTypeEffectiveness = async (pokemon) => {
-  console.log('fetching type effectiveness...')
+  console.log('fetching type effectiveness... \n')
   let promises = [];
   pokemon.types.forEach(async element => {
     try{
@@ -100,16 +104,16 @@ const fetchTypeEffectiveness = async (pokemon) => {
   return Promise
     .all(promises)
     .then(res => {
-      console.log('FINISHED FETCHING TYPE EFFECTIVENESS')
+      console.log('FINISHED FETCHING TYPE EFFECTIVENESS \n')
       return pokemon
     })
 }
 
 const fetchPokedexEntries = async (pokemon) => {
-  console.log('fetching pokedex entries for all generations of this pokemon...')
+  console.log('fetching pokedex entries for all generations of this pokemon...\n')
 
   try {
-    let response = await axios(`https://pokeapi.co/api/v2/pokemon-species/${pokemon.name.split('-')[0]}`);
+    let response = await axios(pokemon.species.url);
 
     response.data.flavor_text_entries.forEach(element => {
       if (element.language.name === 'en') {
@@ -132,16 +136,16 @@ const fetchPokedexEntries = async (pokemon) => {
     response.data.egg_groups.forEach(element => {
       pokemon.eggGroups.push(element.name);
     })
-    if (pokemon.forms.length === 0) {
-      response.data.varieties.forEach(form => {
-        let f = {
-          name: form.pokemon.name,
-          url: form.pokemon.url,
-          apiId: form.pokemon.url.match(/[^v]\d+/)[0].slice(1),
-        }
-        pokemon.forms.push(f)
-      })           
-    };
+
+    response.data.varieties.forEach(form => {
+      let f = {
+        name: form.pokemon.name,
+        url: form.pokemon.url,
+        apiId: form.pokemon.url.match(/[^v]\d+/)[0].slice(1),
+      }
+      pokemon.forms.push(f)
+    })           
+
 
     pokemon.hatchTime = response.data.hatch_counter;
     pokemon.catchRate = response.data.capture_rate;
@@ -152,12 +156,12 @@ const fetchPokedexEntries = async (pokemon) => {
   } catch(err) {
     console.log(err)
   }
-  console.log('FINISHED FETCHING POKEDEX ENTRY INFO')
+  console.log('FINISHED FETCHING POKEDEX ENTRY INFO \n')
   return pokemon;
 }
 
 const fetchAbilityDescriptions = async (pokemon) => {
-  console.log('fetching ability descriptions...')
+  console.log('fetching ability descriptions... \n')
   let newPokemon = {...pokemon};
   let newAbilities = [];
   let promises = [];
@@ -188,7 +192,7 @@ const fetchAbilityDescriptions = async (pokemon) => {
   return Promise
     .all(promises)
     .then(res => {
-      console.log('FINISHED FETCHING ABILITY DESCRIPTIONS')
+      console.log('FINISHED FETCHING ABILITY DESCRIPTIONS \n')
       return newPokemon;
     })
 }

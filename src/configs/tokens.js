@@ -1,11 +1,11 @@
 'use strict';
 
 const accessTokenConfig = {
-  expiresIn: '1h'
+  expiresIn: '15'
 };
 
 const refreshTokenConfig = {
-  expiresIn: '1d'
+  expiresIn: '30d'
 };
 
 module.exports = {

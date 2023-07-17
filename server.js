@@ -133,6 +133,7 @@ app.post('/reauthenticate', async (request, response, next) => {
           const foundUser = await User.findOne({username: parsedRefresh.username});
           if(foundUser){
             request.user = foundUser;
+            console.log('Access token refreshed! Sending data to client.')
             response
               .cookie('pokeToken', newToken, accessCookieConfig)
               .cookie('pokeRefresh', newRefresh, refreshCookieConfig)
