@@ -45,13 +45,36 @@ const supplementMoveData = async (pokemon) => {
           newMove.priority = res.data.priority;
           newMove.dmgClass = res.data.damage_class.name;
           newMove.type = res.data.type.name;
-          newMove.effectChange = res.data.effect_chance;
+          newMove.effectChance = res.data.effect_chance;
+          newMove.meta = res.data.meta ? {
+            ailmentName: res.data.meta.ailment.name !== 'none' ? res.data.meta.ailment.name : null,
+            ailmentChance: res.data.meta.ailment_chance,
+            critChance: res.data.meta.crit_rate,
+            flinchChance: res.data.meta.flinch_chance,
+            drain: res.data.meta.drain,
+            healing: res.data.meta.healing,
+            maxHit: res.data.meta.max_hits,
+            minHit: res.data.meta.min_hits,
+            maxTurns: res.data.meta.max_turns,
+            minTurns: res.data.meta.min_turns,
+            statChangeChance: res.data.meta.stat_chance,
+          } : 'API Missing Data'
 
           if(!res.data.effect_entries[0]?.short_effect){
             newMove.description = 'pokeAPI missing this information';
           } else {
             newMove.description = res.data.effect_entries[0].short_effect.replace('$effect_chance', res.data.effect_chance)              
           };
+
+          newMove.flavorTextEntries = [];
+          res.data.flavor_text_entries.forEach((entry) => {
+            if(entry.language.name === 'en'){
+              newMove.flavorTextEntries.push({
+                flavorText: entry.flavor_text,
+                version: entry.version_group.name
+              })
+            }
+          })
 
           newMoves = [...newMoves, newMove];
           newPokemon.moves = newMoves;

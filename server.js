@@ -251,7 +251,6 @@ app.get('/items/:id', (request, response) => {
   }
 })
 
-
 // CREATE | adds a new team to the database
 app.post ('/teams', bearerAuth,  (request, response, next) => {
   
