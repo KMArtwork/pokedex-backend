@@ -56,10 +56,10 @@ const reshapeStatsAndEvYields = (stats) => {
         element.stat.name = 'DEF';
         break;
       case 'special-attack' :
-        element.stat.name = 'SP.ATK';
+        element.stat.name = 'SPATK';
         break;
       case 'special-defense' :
-        element.stat.name = 'SP.DEF';
+        element.stat.name = 'SPDEF';
         break;
       case 'speed' :
         element.stat.name = 'SPD';
@@ -71,7 +71,7 @@ const reshapeStatsAndEvYields = (stats) => {
     // uncouples 'name' and 'url', add 'stat_value' property
     let newStat = {
       base_stat: element.base_stat,
-      ev: 0,
+      ev: 85,
       iv: 31,
       name: element.stat.name,
       url: element.stat.url,
@@ -196,6 +196,9 @@ pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
     })
     .then(pokemon => {
       cache.pokemon[pokemon.id] = pokemon;
+      console.log('CACHING POKEMON: ', pokemon.name)
+      // pokemon.moves.forEach(move => console.log(move.name))
+      console.log(pokemon.moves.length)
       response.status(200).send({pokemon})
     })
     .catch(e => {

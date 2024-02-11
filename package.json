@@ -15,7 +15,7 @@
     "nodemon": "^2.0.22"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "name": "pokedex-backend",
   "description": "**Author**: Kawika Miller",

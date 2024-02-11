@@ -88,6 +88,8 @@ const supplementMoveData = async (pokemon) => {
   return Promise
     .all(promises)
     .then(() => {
+      // console.log(newPokemon.moves.length)
+      newPokemon.moves.forEach(move => console.log(move.name))
       console.log('FINISHED SUPPLEMENTING MOVE DATA  \n')
       return newPokemon
     })
