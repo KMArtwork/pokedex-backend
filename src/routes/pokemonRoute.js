@@ -125,7 +125,7 @@ const createPokemon = (fetchedPokemon) => {
     fetchedPokemon.name,
     fetchedPokemon.id,
     100,
-    'bashful',
+    "Adamant",
     newAbilities,
     moveArr,
     fetchedPokemon.sprites,
