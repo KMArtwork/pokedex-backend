@@ -1,4 +1,5 @@
 'use strict';
+const sprites = require('./sprites')
 const axios = require('axios')
 
 // reformat edge case search queries because of how pokeapi is set up
@@ -88,8 +89,6 @@ const supplementMoveData = async (pokemon) => {
   return Promise
     .all(promises)
     .then(() => {
-      // console.log(newPokemon.moves.length)
-      newPokemon.moves.forEach(move => console.log(move.name))
       console.log('FINISHED SUPPLEMENTING MOVE DATA  \n')
       return newPokemon
     })
@@ -172,6 +171,7 @@ const fetchPokedexEntries = async (pokemon) => {
     })           
 
 
+    pokemon.forms = sortPokemonForms(pokemon.forms)
     pokemon.hatchTime = response.data.hatch_counter;
     pokemon.catchRate = response.data.capture_rate;
     pokemon.genderRate = response.data.gender_rate;
@@ -220,6 +220,37 @@ const fetchAbilityDescriptions = async (pokemon) => {
       console.log('FINISHED FETCHING ABILITY DESCRIPTIONS \n')
       return newPokemon;
     })
+}
+
+const sortPokemonForms = (forms) => {
+  let newFormsObj = {
+    base: [],
+    mega: [],
+    gmax: [],
+    world: [],
+  };
+
+
+  forms.forEach(form => {
+    let formName = form.name.split('-')[1];
+
+    formName === undefined ?
+      newFormsObj.base.push(form)
+    :
+    formName === 'gmax' ?
+      newFormsObj.gmax.push(form)
+    :
+    formName === 'mega' ?
+      newFormsObj.mega.push(form)
+    :
+    newFormsObj.world.push(form)
+  })
+
+  if (sprites[forms[0].name.split('-')[0]]) {
+    newFormsObj.world.push(...sprites[forms[0].name.split('-')[0]])
+  }
+
+  return newFormsObj
 }
 
 module.exports = {supplementMoveData, fetchTypeEffectiveness, fetchPokedexEntries, fetchAbilityDescriptions, handleSearchQueryEdgeCases}
