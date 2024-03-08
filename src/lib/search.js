@@ -235,7 +235,7 @@ const sortPokemonForms = (forms) => {
     let formName = form.name.split('-')[1];
 
     formName === undefined ?
-      newFormsObj.base.push(form)
+      newFormsObj.world.push(form)
     :
     formName === 'gmax' ?
       newFormsObj.gmax.push(form)
