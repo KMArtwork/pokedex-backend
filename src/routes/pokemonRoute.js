@@ -154,6 +154,7 @@ const createPokemon = (fetchedPokemon) => {
   };
 
   pokemon.species = fetchedPokemon.species;
+  pokemon.cry = fetchedPokemon.cries.latest;
   console.log('INITIAL POKEMON OBJECT CONSTRUCTED \n')
   return pokemon;
 }
@@ -214,7 +215,6 @@ pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
 })
 
 pokeRoutes.get('/pokemon/form/:form', (request, response, next) => {
-  // console.log(request.params.form)
 
   axios
   .get(`https://pokeapi.co/api/v2/pokemon/${request.params.form}`)
