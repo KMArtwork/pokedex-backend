@@ -12,10 +12,10 @@
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.1",
     "mongoose": "^7.4.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.1.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "server": "nodemon server.js"
   },
   "name": "pokedex-backend",
   "description": "**Author**: Kawika Miller",
