@@ -214,54 +214,19 @@ pokeRoutes.get('/pokemon/:searchQuery', (request, response, next) => {
 
 })
 
-pokeRoutes.get('/pokemon/form/:form', (request, response, next) => {
-
-  axios
-  .get(`https://pokeapi.co/api/v2/pokemon/${request.params.form}`)
-  .then(res => {
-
-    if(cache.pokemon[res.data.id]){
-      console.log('Pokemon found in cache!')
-      throw {
-        message: 'Pokemon found in cache!',
-        pokemon: cache.pokemon[res.data.id]
-      };
-    }
-    else {
-      let pokemon = createPokemon(res.data)
-      return pokemon;        
-    }
-    
-  })
-  .then(async pokemon =>{
-    let newPokemon = await supplementMoveData(pokemon);
-    return newPokemon
-  })
-  .then(async pokemon => {
-    let newPokemon = await fetchTypeEffectiveness(pokemon);
-    return newPokemon
-  })
-  .then(async pokemon => {
-    let newPokemon = await fetchAbilityDescriptions(pokemon);
-    return newPokemon
-  })
-  .then(async pokemon => {
-    let newPokemon = await fetchPokedexEntries(pokemon);
-    return newPokemon
-  })
-  .then(pokemon => {
-    cache.pokemon[pokemon.id] = pokemon;
-    response.status(200).send({pokemon})
-  })
-  .catch(e => {
-    if (e.message === 'Pokemon found in cache!'){
-      console.log('POKEMON IN CACHE, SENDING BACK CACHED DATA')
-      response.status(200).send({pokemon: e.pokemon})
-    } else {
-      console.log('Error in pokemonRoute.js occured')
-      next(e)
-    }
-  })
+pokeRoutes.get('/type/:typeName', (request, response, next) => {
+  axios.get(`https://pokeapi.co/api/v2/type/${request.params.typeName}`)
+    .then(res => {
+      response.status(200).send({
+        doubleDamageTo: res.data.damage_relations.double_damage_to,
+        halfDamageTo: res.data.damage_relations.half_damage_to,
+        noDamageTo: res.data.damage_relations.no_damage_to,
+      })
+    })
+    .catch(e => {
+      response.status(400).send(e)
+    })
 })
+
 
 module.exports = { pokeRoutes }
